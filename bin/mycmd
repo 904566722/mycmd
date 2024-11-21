@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# 获取真实脚本路径（处理符号链接）
+resolve_script_path() {
+    local source="${BASH_SOURCE[0]}"
+    # 添加调试信息
+    echo "Debug: Original source = $source" >&2
+    
+    # 获取最终的真实路径
+    local real_path="$(readlink -f "$source" 2>/dev/null)"
+    if [ -z "$real_path" ]; then
+        while [ -L "$source" ]; do
+            source="$(readlink "$source")"
+            echo "Debug: Resolved link = $source" >&2
+        done
+        real_path="$source"
+    fi
+    echo "Debug: Final real_path = $real_path" >&2
+    
+    local dir="$(cd "$(dirname "$real_path")" && pwd)"
+    echo "Debug: Final directory = $dir" >&2
+    echo "$dir"
+}
+
+# 获取脚本所在目录的绝对路径
+SCRIPT_DIR="$(resolve_script_path)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# 导入通用函数库
+source "$PROJECT_ROOT/lib/logger.sh"
+
+# 显示帮助信息
+show_help() {
+    cat << EOF
+mycmd - 管理自定义命令的工具
+
+用法：
+    mycmd <command> [options]
+
+可用命令：
+    flow        管理各种工作流和学习流
+    help        显示帮助信息
+
+选项：
+    --help      显示此帮助信息
+EOF
+}
+
+# 主函数
+main() {
+    if [[ $# -eq 0 || "$1" == "--help" ]]; then
+        show_help
+        exit 0
+    fi
+
+    local command="$1"
+    shift
+
+    case "$command" in
+        flow)
+            "$PROJECT_ROOT/modules/flow/flow.sh" "$@"
+            ;;
+        help)
+            show_help
+            ;;
+        *)
+            error_log "未知命令: $command"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@" 
