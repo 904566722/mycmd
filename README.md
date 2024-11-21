@@ -22,6 +22,8 @@ mycmd xxx ...
 调用
 ```bash
 mycmd flow xxx ...
+
+mycmd flow todo-flush --type=work --project=BCS,DUALENGINE
 ```
 
 ## 通用方法
